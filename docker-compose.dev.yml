@@ -10,6 +10,14 @@ services:
     env_file: .env
     networks:
       - demo_docker
+  redis:
+    image: redis:5.0.3
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+    networks:
+      - demo_docker
   app:
     build:
       context: .
@@ -25,9 +33,21 @@ services:
     tty: true
     networks:
       - demo_docker
+  sidekiq:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    command: docker/common/wait-for-it.sh app:3000 -- bundle exec sidekiq
+    volumes:
+      - .:/app
+      - bundle:/bundle
+    env_file: .env
+    networks:
+      - demo_docker
 volumes:
   db-data:
   bundle:
+  redis-data:
 networks:
   demo_docker:
     external:
