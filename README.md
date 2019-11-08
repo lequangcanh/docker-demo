@@ -17,7 +17,7 @@ sudo reboot
 
 ## Tổ chức các file Docker
 
-*Ý tưởng*:
+**Ý tưởng**:
 * Lưu Dockerfile, các file scripts không thay đổi giữa các môi trường vào thư mục /docker.
   * Mỗi image cần build nên đặt ở trong từng folder riêng, bao gồm Dockerfile và các file scripts liên quan.
   * Những image sử dụng trực tiếp từ offical image thì có thể khai báo thẳng trong docker-compose.
@@ -48,14 +48,14 @@ WORKDIR /app
 COPY ./Gemfile /Gemfile
 COPY ./Gemfile.lock /Gemfile.lock
 
-# Nếu sử dụng bundler 2.0.2
-RUN gem install bundler -v 2.0.2
-
 # Định nghĩa path lưu các gem được cài đặt
 ENV BUNDLE_PATH=/bundle \
     BUNDLE_BIN=/bundle/bin \
     GEM_HOME=/bundle
 ENV PATH="${BUNDLE_BIN}:${PATH}"
+
+# Nếu sử dụng bundler 2.0.2
+RUN gem install bundler -v 2.0.2
 
 # Expose app ra port 3000 trong container
 EXPOSE 3000

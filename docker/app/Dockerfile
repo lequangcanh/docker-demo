@@ -13,11 +13,11 @@ WORKDIR $APP_DIR
 COPY ./Gemfile /Gemfile
 COPY ./Gemfile.lock /Gemfile.lock
 
-RUN gem install bundler -v 2.0.2
-
 ENV BUNDLE_PATH=/bundle \
     BUNDLE_BIN=/bundle/bin \
     GEM_HOME=/bundle
 ENV PATH="${BUNDLE_BIN}:${PATH}"
+
+RUN gem install bundler -v 2.0.2
 
 EXPOSE 3000
