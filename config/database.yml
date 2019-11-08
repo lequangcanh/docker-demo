@@ -30,5 +30,8 @@ test:
   <<: *default
   database: docker-demo_test
 
+staging:
+  <<: *default
+
 production:
   <<: *default
