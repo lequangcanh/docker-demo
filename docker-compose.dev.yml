@@ -37,7 +37,10 @@ services:
     build:
       context: .
       dockerfile: docker/app/Dockerfile
-    command: docker/common/wait-for-it.sh app:3000 -- bundle exec sidekiq
+    command: docker/common/wait-for-it.sh redis:6379 -- bundle exec sidekiq
+    depends_on:
+      - app
+      - redis
     volumes:
       - .:/app
       - bundle:/bundle
