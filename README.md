@@ -140,3 +140,7 @@ dc up -d # chạy ở chế độ daemon
 ```
 dc down
 ```
+
+## Một số lưu ý
+
+* **depends_on:** Start service theo thứ tự trong list depends_on trước. Tuy nhiên, nó chỉ đợi start service chứ không đợi service "ready", vì vậy những service phụ thuộc cần phải đợi "ready" (ví dụ app phải đợi DB khởi tạo thành công mới migrate được) thì nên sử dụng scripts `docker/common/wait-fot-it.sh`
