@@ -2,33 +2,33 @@ version: "3"
 
 services:
   db:
-    image: mysql:8.0.13
-    ports:
-      - 3306:3306
+    image: mysql:8.0.13 # user offical image
+    # Change default authentication plugin
+    command: mysqld --default-authentication-plugin=mysql_native_password
     volumes:
-      - db-data:/var/lib/mysql
-    env_file: .env
+      - db-data:/var/lib/mysql # save data in docker volume
+    environment: # list environments use for this container
+      - MYSQL_ROOT_PASSWORD=12345678
     networks:
       - demo_docker
   redis:
     image: redis:5.0.3
-    ports:
-      - 6379:6379
     volumes:
       - redis-data:/data
     networks:
       - demo_docker
   app:
-    build:
+    build: # use image is built from Dockerfile
       context: .
       dockerfile: docker/app/Dockerfile
+    # Run entrypoint after db service ready
     command: docker/common/wait-for-it.sh db:3306 -- docker/app/entrypoint.sh
     volumes:
-      - .:/app
+      - .:/app # mount data beetwen host and container
       - bundle:/bundle
-    ports:
+    ports: # left (host port), right (expose port)
       - 3000:3000
-    env_file: .env
+    env_file: .env # list environments use file
     stdin_open: true
     tty: true
     networks:
@@ -38,7 +38,7 @@ services:
       context: .
       dockerfile: docker/app/Dockerfile
     command: docker/common/wait-for-it.sh redis:6379 -- bundle exec sidekiq
-    depends_on:
+    depends_on: # This service was built after app and redis were built successfully
       - app
       - redis
     volumes:
