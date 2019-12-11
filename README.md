@@ -11,6 +11,8 @@ COMPOSE_VERSION=`git ls-remote https://github.com/docker/compose | grep refs/tag
 sudo sh -c "curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose"
 sudo chmod +x /usr/local/bin/docker-compose
 sudo sh -c "curl -L https://raw.githubusercontent.com/docker/compose/${COMPOSE_VERSION}/contrib/completion/bash/docker-compose > /etc/bash_completion.d/docker-compose"
+
+# Thêm current user vào docker group để khỏi dùng sudo
 sudo usermod -aG docker $USER
 sudo reboot
 ```
@@ -25,82 +27,11 @@ sudo reboot
 * File config docker-compose sẽ khác nhau giữa các môi trường và đặt tên theo kiểu: docker-compose.[env].yml
 * Khi thực hiện các lệnh với docker-compose thì thêm cờ -f trỏ tới file config. Ví du: `docker-compose -f docker-compose.dev.yml up`. Vì đoạn `docker-compose -f docker-compose.dev.yml` là giống nhau trong 1 môi trường nên có thể đặt alias cho ngắn gọn.
 
-## Build Dockerfile cơ bản
+## Build Dockerfile và config Docker Compose cơ bản
+- [docker/ruby/Dockerfile](https://github.com/lequangcanh/docker-demo/blob/master/docker/ruby/Dockerfile)
+- [docker-compose.dev.yml](https://github.com/lequangcanh/docker-demo/blob/master/docker-compose.dev.yml)
 
-* Với 1 app Rails 6 cơ bản, thực hiện build 1 image với Dockerfile như sau:
-
-```Dockerfile
-FROM ruby:2.6.5
-
-# Thực hiện cài đặt một số tool cơ bản
-RUN apt-get update && apt-get install -y build-essential curl cron logrotate gettext-base nano
-RUN apt-get clean
-# Với Rails 6 phải cài đặt thêm yarn
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -y yarn
-
-# Tạo thư mục làm việc
-RUN mkdir -p /app
-WORKDIR /app
-
-# Copy Gemfile phục vụ cho việc bundle khi build, code sẽ được mount trong config của Compose
-COPY ./Gemfile /Gemfile
-COPY ./Gemfile.lock /Gemfile.lock
-
-# Định nghĩa path lưu các gem được cài đặt
-ENV BUNDLE_PATH=/bundle \
-    BUNDLE_BIN=/bundle/bin \
-    GEM_HOME=/bundle
-ENV PATH="${BUNDLE_BIN}:${PATH}"
-
-# Nếu sử dụng bundler 2.0.2
-RUN gem install bundler -v 2.0.2
-
-# Expose app ra port 3000 trong container
-EXPOSE 3000
-```
-
-* File docker-compose cơ bản run 2 container là app và db
-
-```yml
-version: "3"
-
-services:
-  db:
-    image: mysql:8.0.13 #Sử dụng images offical
-    ports:
-      - 3306:3306 #bind port 3306 trong container (bên phải) ra 3306 của host (bên trái)
-    volumes:
-      - db-data:/var/lib/mysql #Sử dụng volume để lưu dữ liệu tránh mất mát mỗi lần rebuild container
-    env_file: .env #Khai báo các biến môi trường
-    networks:
-      - demo_docker
-  app:
-    build: # Sử dụng images build từ dockerfile
-      context: .
-      dockerfile: docker/app/Dockerfile
-    command: docker/common/wait-for-it.sh db:3306 -- docker/app/entrypoint.sh #command sau khi build container thành công
-    volumes:
-      - .:/app
-      - bundle:/bundle
-    ports:
-      - 3000:3000
-    env_file: .env
-    stdin_open: true
-    tty: true
-    networks:
-      - demo_docker
-volumes:
-  db-data:
-  bundle:
-networks:
-  demo_docker:
-    external:
-      name: demo_docker #define network để các container connect với nhau
-```
-
-* Các file liên quan:
+## Các file liên quan:
   * docker/app/entrypoint.sh: Tập hợp các task của app chạy mỗi lần deploy
   * docker/common/wait-for-it.sh: Script yêu cầu đợi. Cụ thể container app sẽ phải đợi db khởi tạo xong mới được chạy, tránh bị lỗi không connect được
 

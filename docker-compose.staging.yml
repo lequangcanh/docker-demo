@@ -4,8 +4,8 @@ services:
   app:
     build:
       context: .
-      dockerfile: docker/app/Dockerfile
-    command: docker/app/entrypoint.sh
+      dockerfile: docker/ruby/Dockerfile
+    command: docker/ruby/entrypoint.sh
     volumes:
       - .:/app
       - bundle:/bundle
@@ -18,7 +18,7 @@ services:
   sidekiq:
     build:
       context: .
-      dockerfile: docker/app/Dockerfile
+      dockerfile: docker/ruby/Dockerfile
     command: docker/common/wait-for-it.sh redis:6379 -- bundle exec sidekiq
     depends_on:
       - app

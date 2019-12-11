@@ -20,9 +20,9 @@ services:
   app:
     build: # use image is built from Dockerfile
       context: .
-      dockerfile: docker/app/Dockerfile
+      dockerfile: docker/ruby/Dockerfile
     # Run entrypoint after db service ready
-    command: docker/common/wait-for-it.sh db:3306 -- docker/app/entrypoint.sh
+    command: docker/common/wait-for-it.sh db:3306 -- docker/ruby/entrypoint.sh
     volumes:
       - .:/app # mount data beetwen host and container
       - bundle:/bundle
@@ -36,7 +36,7 @@ services:
   sidekiq:
     build:
       context: .
-      dockerfile: docker/app/Dockerfile
+      dockerfile: docker/ruby/Dockerfile
     command: docker/common/wait-for-it.sh redis:6379 -- bundle exec sidekiq
     depends_on: # This service was built after app and redis were built successfully
       - app
